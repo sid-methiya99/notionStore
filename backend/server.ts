@@ -1,12 +1,10 @@
 import express from "express";
 import { getAllBlocks, notion } from "./parse";
-import { all } from "axios";
 
 const app = express();
 app.use(express.json());
 
 app.get("/", async (req, res) => {
-  const fakeId = "af3554e55e3800dabee000cf380f84d";
   await getAllBlocks(fakeId);
   res.json({
     message: "Server running",
@@ -14,8 +12,6 @@ app.get("/", async (req, res) => {
 });
 
 app.post("/database", async (req, res) => {
-  const fakeId = "2af3554e55e3807d857cd0440f31ceed";
-
   const addData = await notion.pages.create({
     parent: {
       database_id: fakeId,
@@ -34,8 +30,6 @@ app.post("/database", async (req, res) => {
 });
 
 app.get("/database", async (req, res) => {
-  const fakeId = "2af3554e55e3807d857cd0440f31ceed";
-  const secondId = "2af3554e55e38036aad0d7d8b8413335";
   const database = await notion.databases.retrieve({
     database_id: secondId,
   });
@@ -54,10 +48,8 @@ app.get("/database", async (req, res) => {
 });
 
 // app.patch("/", async (req, res) => {
-//   const notSure = "2af3554e55e3800dabee000cf380f84d";
 // });
 // app.post("/", async (req, res) => {
-//   const pageId = "28b3554e55e380f89c2cf22b03f35daf";
 //   const newHeadingResponse = await notion.blocks.children.append({
 //     block_id: pageId,
 //     children: [
