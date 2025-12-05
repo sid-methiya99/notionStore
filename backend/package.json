@@ -12,10 +12,21 @@
   "packageManager": "pnpm@10.21.0",
   "dependencies": {
     "@notionhq/client": "^5.4.0",
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "axios": "^1.13.2",
+    "better-auth": "^1.4.5",
     "client": "link:@types/@notionhq/client",
+    "cors": "^2.8.5",
     "dotenv": "^17.2.3",
-    "express": "^5.2.1"
+    "drizzle-orm": "^0.45.0",
+    "express": "^5.2.1",
+    "pg": "^8.16.3",
+    "zod": "^4.1.13"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.15.6",
+    "drizzle-kit": "^0.31.8",
+    "tsx": "^4.21.0"
   }
 }
