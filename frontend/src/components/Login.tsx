@@ -21,9 +21,16 @@ export const Login = () => {
   const navigate = useNavigate();
 
   const signIn = async () => {
-    const data = await authClient.signIn.social({
-      provider: "google",
-    });
+    const data = await authClient.signIn.social(
+      {
+        provider: "google",
+      },
+      {
+        onSuccess: () => {
+          navigate("/dashboard");
+        },
+      },
+    );
   };
 
   return (

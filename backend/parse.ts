@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 export const notion = new Client({
-  auth: process.env.NOTION_TOKEN,
+  auth: process.env.NOTION_TOKEN2,
 });
 
 const getPlainTextFromRichText = (richText) => {
@@ -23,12 +23,10 @@ const getMediaSourceText = (block) => {
   } else {
     source = "[Missing case for media block types]: " + block.type;
   }
-  // If there's a caption, return it with the source
   if (block[block.type].caption.length) {
     caption = getPlainTextFromRichText(block[block.type].caption);
     return caption + ": " + source;
   }
-  // If no caption, just return the source URL
   return source;
 };
 
