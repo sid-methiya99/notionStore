@@ -18,4 +18,11 @@ export const auth = betterAuth({
   },
   trustedOrigins: ["http://localhost:5173"],
   baseURL: "http://localhost:3000",
+  advanced: {
+    defaultCookieAttributes: {
+      sameSite: "none",
+      secure: true,
+      httpOnly: true,
+    },
+  },
 });

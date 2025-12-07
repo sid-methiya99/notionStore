@@ -12,23 +12,79 @@ const app = express();
 
 app.use(
   cors({
-    origin: "http://localhost:5173", // Replace with your frontend's origin
-    methods: ["GET", "POST", "PUT", "DELETE"], // Specify allowed HTTP methods
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   }),
 );
 app.all("/api/auth/*splat", toNodeHandler(auth));
 app.use(express.json());
 
-//
-// app.get("/api/me", async (req, res) => {
-//   const session = await auth.api.getSession({
-//     headers: fromNodeHeaders(req.headers),
-//   });
-//   return res.json(session);
-// });
+app.post("/addId", async (req, res) => {
+  const parentId = req.body.parentId;
 
-// This is for summarizing articles link provided
+  const blocks = await notion.blocks.children.list({
+    block_id: parentId,
+  });
+
+  if (!blocks) {
+    res.status(400).json({
+      message: "Incorrect parentId",
+    });
+    return;
+  }
+
+  let userId = "";
+  try {
+    const session = await auth.api.getSession({
+      headers: fromNodeHeaders(req.headers),
+    });
+    userId = session?.user.id!;
+  } catch (error) {
+    console.error(error);
+  }
+
+  if (!userId) {
+    throw new Error("UserID missing");
+  }
+
+  let getIdAndTitle: BlockType[] = [];
+
+  for (const block of blocks.results) {
+    //@ts-ignore
+    if (block?.child_database) {
+      getIdAndTitle.push({
+        id: block.id,
+        //@ts-ignore
+        title: block?.child_database.title,
+      });
+    }
+  }
+
+  try {
+    const [parent] = await db
+      .insert(storeContentDetails)
+      .values({
+        userId: userId,
+        parentPageId: parentId,
+      })
+      .returning();
+
+    const rowsToInsert = getIdAndTitle.map((item) => ({
+      storeId: parent.id,
+      databaseId: item.id,
+      parentTitle: item.title,
+    }));
+
+    const data = await db.insert(storeTitleAndId).values(rowsToInsert);
+    res.status(200).json({
+      message: "Fetched all databases",
+    });
+  } catch (error) {
+    console.error(error);
+  }
+});
+
 app.post("/desc", async (req, res) => {
   const url = req.body.url;
   const searchResponse = await fetch("https://api.scira.ai/api/search", {
@@ -61,52 +117,6 @@ interface BlockType {
   title: string;
 }
 
-app.get("/", async (req, res) => {
-  const session = await auth.api.getSession({
-    headers: fromNodeHeaders(req.headers),
-  });
-  const parentId = req.body.parentId;
-  const fakeId = "2c13554e55e38087b375eb4fc4d6bb49";
-  const blocks = await notion.blocks.children.list({
-    block_id: parentId,
-  });
-
-  let getIdAndTitle: BlockType[] = [];
-
-  for (const block of blocks.results) {
-    //@ts-ignore
-    if (block?.child_database) {
-      getIdAndTitle.push({
-        id: block.id,
-        //@ts-ignore
-        title: block?.child_database.title,
-      });
-    }
-  }
-
-  const [parent] = await db
-    .insert(storeContentDetails)
-    .values({
-      userId: session?.user.id || "",
-      parentPageId: parentId,
-    })
-    .returning();
-
-  const rowsToInsert = getIdAndTitle.map((item) => ({
-    storeId: parent.id,
-    databaseId: item.id,
-    parentTitle: item.title,
-  }));
-
-  const data = await db.insert(storeTitleAndId).values(rowsToInsert);
-  console.log(data);
-
-  res.json({
-    message: "Server running",
-    blocks,
-  });
-});
-//
 app.post("/database", async (req, res) => {
   const secondId = "2af3554e-55e3-807d-857c-d0440f31ceed";
   const addData = await notion.pages.create({
