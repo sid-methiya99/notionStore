@@ -9,7 +9,7 @@ export function Dashboard() {
 
   useEffect(() => {
     if (!isPending && !session) {
-      navigate("/login");
+      navigate("/");
     }
   }, [session, isPending, navigate]);
 
@@ -23,7 +23,7 @@ export function Dashboard() {
 
   return (
     <div>
-      <h1>Welcome, {session.user.name}!</h1>
+      <h1 className="font-geist">Welcome, {session.user.name}!</h1>
       <img src={session.user.image || ""} alt="Profile" />
       <p>Email: {session.user.email}</p>
       <p>ID: {session.user.id}</p>

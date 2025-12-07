@@ -2,27 +2,24 @@ import express from "express";
 import { fromNodeHeaders, toNodeHandler } from "better-auth/node";
 import { auth } from "./src/utils/auth";
 import { getAllBlocks, notion } from "./parse";
-import type { ChildDatabaseBlockObjectResponse } from "@notionhq/client";
 import { db } from "./src";
 import { storeContentDetails, storeTitleAndId } from "./src/db/schema";
+import { config } from "dotenv";
+import cors from "cors";
+
+config();
 const app = express();
 
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "http://localhost:5173");
-  res.header("Access-Control-Allow-Credentials", "true");
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+app.use(
+  cors({
+    origin: "http://localhost:5173", // Replace with your frontend's origin
+    methods: ["GET", "POST", "PUT", "DELETE"], // Specify allowed HTTP methods
+    credentials: true,
+  }),
+);
+app.all("/api/auth/*splat", toNodeHandler(auth));
+app.use(express.json());
 
-  // Handle preflight
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(200);
-  }
-
-  next();
-});
-
-// app.all("/api/auth/*splat", toNodeHandler(auth));
-// app.use(express.json());
 //
 // app.get("/api/me", async (req, res) => {
 //   const session = await auth.api.getSession({
@@ -30,6 +27,34 @@ app.use((req, res, next) => {
 //   });
 //   return res.json(session);
 // });
+
+// This is for summarizing articles link provided
+app.post("/desc", async (req, res) => {
+  const url = req.body.url;
+  const searchResponse = await fetch("https://api.scira.ai/api/search", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": process.env.SCIRA_AI_KEY!,
+    },
+    body: JSON.stringify({
+      messages: [
+        {
+          role: "user",
+          content: `Open and read the webpage at: ${url}
+Based only on the content of this page, write a clear, neutral description of what it is about in around 100 words. Summarize the main topic, key points, and purpose of the page, and mention who it is useful for. Do not include your own opinions, and do not add information that is not present on the page. Output only a single paragraph of about 100 words.`,
+        },
+      ],
+    }),
+  });
+
+  const searchData = await searchResponse.json();
+
+  res.json({
+    message: "Success",
+    searchData,
+  });
+});
 
 interface BlockType {
   id: string;
@@ -81,7 +106,7 @@ app.get("/", async (req, res) => {
     blocks,
   });
 });
-
+//
 app.post("/database", async (req, res) => {
   const secondId = "2af3554e-55e3-807d-857c-d0440f31ceed";
   const addData = await notion.pages.create({
