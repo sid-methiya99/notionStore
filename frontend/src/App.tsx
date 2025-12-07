@@ -5,23 +5,24 @@ import Navbar from "@/components/Navbar";
 import Home from "@/pages/Home";
 import Login from "@/pages/Login";
 import "./index.css";
-
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 function App() {
+  const queryClient = new QueryClient();
   return (
-    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-      <Router>
-        {/* font-sans applies the Geist font defined in your CSS */}
-        <div className="bg-background text-foreground selection:bg-accent selection:text-accent-foreground min-h-screen font-sans antialiased">
-          <main className="flex flex-col items-center">
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+        <Router>
+          {/* font-sans applies the Geist font defined in your CSS */}
+          <div className="bg-background text-foreground selection:bg-accent selection:text-accent-foreground min-h-screen font-sans antialiased">
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
             </Routes>
-          </main>
-          <Toaster />
-        </div>
-      </Router>
-    </ThemeProvider>
+            <Toaster />
+          </div>
+        </Router>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }
 
