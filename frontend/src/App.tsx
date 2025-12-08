@@ -15,8 +15,8 @@ function App() {
           {/* font-sans applies the Geist font defined in your CSS */}
           <div className="bg-background text-foreground selection:bg-accent selection:text-accent-foreground min-h-screen font-sans antialiased">
             <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/login" element={<Login />} />
+              <Route path="/dashboard" element={<Home />} />
+              <Route path="/" element={<Login />} />
             </Routes>
             <Toaster />
           </div>

@@ -12,12 +12,14 @@ import {
 interface Props {
   handleReset: () => void;
   handleSubmit: (e: React.FormEvent) => void;
-  loading: boolean;
+  loading?: boolean;
   setValue: React.Dispatch<React.SetStateAction<string>>;
   value: string;
   setCategory: React.Dispatch<React.SetStateAction<string>>;
   category: string;
+  returnTitleAndId: string[] | [];
 }
+
 export const AddData = ({
   loading,
   handleSubmit,
@@ -25,6 +27,7 @@ export const AddData = ({
   setValue,
   category,
   setCategory,
+  returnTitleAndId,
 }: Props) => {
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 fill-mode-forwards w-full max-w-[600px] space-y-8 duration-600 ease-out">
@@ -59,19 +62,23 @@ export const AddData = ({
               />
             </div>
 
-            <div className="h-full w-full">
-              <Select value={category} onValueChange={setCategory}>
-                <SelectTrigger className="h-12 w-full">
-                  <SelectValue placeholder="Select Type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="backlog">Backlog</SelectItem>
-                  <SelectItem value="todo">To Do</SelectItem>
-                  <SelectItem value="in-progress">In Progress</SelectItem>
-                  <SelectItem value="done">Done</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {returnTitleAndId?.length > 0 && (
+              <div className="h-full w-full">
+                <Select value={category} onValueChange={setCategory}>
+                  <SelectTrigger className="h-12 w-full">
+                    <SelectValue placeholder="Select Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {returnTitleAndId?.map((item) => (
+                      <SelectItem value={item} key={item}>
+                        {item}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            {/* Handle edge case where select is empty */}
 
             <Button type="submit" disabled={loading} className="h-10 px-6">
               {loading ? (
@@ -84,6 +91,11 @@ export const AddData = ({
             </Button>
           </form>
         </div>
+        {returnTitleAndId.length === 0 && (
+          <p className="text-muted-foreground mb-2 px-2 text-center text-sm">
+            Please enter a database in your parent page
+          </p>
+        )}
         <div className="lg:px-6 lg:pb-6">
           <p className="text-muted-foreground hidden text-[0.8rem] lg:block">
             Press{" "}

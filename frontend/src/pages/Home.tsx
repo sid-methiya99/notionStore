@@ -2,27 +2,30 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import { useSession } from "@/lib/auth-client";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ConnectDatabase } from "@/components/ConnectDatabase";
 import { AddData } from "@/components/AddData";
-import { useMutation } from "@tanstack/react-query";
-import { sendPageId } from "@/lib/mutations";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { getParentPageIdOfUser, sendPageId } from "@/lib/mutations";
 
 export default function Home() {
   const [value, setValue] = useState("");
   const [category, setCategory] = useState("");
-  const [loading, setLoading] = useState(false);
   const [parentPageId, setParentPageId] = useState("");
   const [isConfigured, setIsConfigured] = useState(false);
   const [showSuccessAnim, setShowSuccessAnim] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const navigate = useNavigate();
   const { data: session, isPending } = useSession();
+  const { data, isLoading } = useQuery({
+    queryKey: ["parentPageId"],
+    queryFn: getParentPageIdOfUser,
+  });
 
-  // Redirect if not logged in
   useEffect(() => {
     if (!isPending && !session) {
-      navigate("/login");
+      navigate("/");
     }
   }, [session, isPending, navigate]);
 
@@ -51,11 +54,10 @@ export default function Home() {
     }
 
     mutation.mutate({ pageId: parentPageId });
-
+    setSearchParams({ parentPageId });
     setShowSuccessAnim(true);
   };
 
-  // Handle Item Addition
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -66,7 +68,6 @@ export default function Home() {
       return;
     }
 
-    setLoading(true);
     await new Promise((resolve) => setTimeout(resolve, 600));
 
     toast.success("Content Added", {
@@ -78,7 +79,6 @@ export default function Home() {
     });
 
     setValue("");
-    setLoading(false);
   };
 
   // Helper to reset configuration (for demo purposes)
@@ -88,25 +88,23 @@ export default function Home() {
   };
 
   if (isPending) return null; // Or a loading spinner
+  console.log(data);
 
   return (
     <div className="bg-background flex min-h-screen w-full flex-col">
       <Navbar />
-
       <div className="relative container mx-auto flex flex-1 flex-col items-center justify-center px-4 py-12">
-        {!isConfigured && (
+        {!data?.parentPageId && !isLoading ? (
           <ConnectDatabase
             parentPageId={parentPageId}
             handleSetup={handleSetup}
             setParentPageId={setParentPageId}
-            loading={loading}
+            loading={mutation.isPending}
             showSuccessAnim={showSuccessAnim}
           />
-        )}
-
-        {isConfigured && (
+        ) : (
           <AddData
-            loading={loading}
+            returnTitleAndId={data?.returnTitleAndId || []}
             value={value}
             setValue={setValue}
             category={category}

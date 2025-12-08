@@ -1,27 +1,38 @@
+import { fromNodeHeaders } from "better-auth/node";
 import express from "express";
-import { fromNodeHeaders, toNodeHandler } from "better-auth/node";
-import { auth } from "./src/utils/auth";
-import { getAllBlocks, notion } from "./parse";
-import { db } from "./src";
-import { storeContentDetails, storeTitleAndId } from "./src/db/schema";
+import { db } from "..";
+import { storeContentDetails, storeTitleAndId } from "../db/schema";
+import { auth } from "../utils/auth";
+import { notion } from "../utils/parse";
 import { config } from "dotenv";
-import cors from "cors";
+import { eq } from "drizzle-orm";
+import { error } from "better-auth/api";
 
 config();
-const app = express();
 
-app.use(
-  cors({
-    origin: "http://localhost:5173",
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true,
-  }),
-);
-app.all("/api/auth/*splat", toNodeHandler(auth));
-app.use(express.json());
+export const notionRouter = express.Router();
 
-app.post("/addId", async (req, res) => {
+interface BlockType {
+  id: string;
+  title: string;
+}
+
+// For adding parentId
+notionRouter.post("/add-parent-id", async (req, res) => {
   const parentId = req.body.parentId;
+
+  const checkIdExists = await db
+    .select()
+    .from(storeContentDetails)
+    .where(eq(storeContentDetails.parentPageId, parentId));
+
+  console.log("Already exists: ", checkIdExists);
+  if (checkIdExists) {
+    res.status(200).json({
+      message: "Id already exists",
+    });
+    return;
+  }
 
   const blocks = await notion.blocks.children.list({
     block_id: parentId,
@@ -85,7 +96,47 @@ app.post("/addId", async (req, res) => {
   }
 });
 
-app.post("/desc", async (req, res) => {
+notionRouter.get("/user-parent-id", async (req, res) => {
+  let userId = "";
+  try {
+    const session = await auth.api.getSession({
+      headers: fromNodeHeaders(req.headers),
+    });
+    userId = session?.user.id!;
+  } catch (error) {
+    console.error(error);
+  }
+
+  if (!userId) {
+    throw new Error("UserID missing");
+  }
+
+  const [checkIfParentId] = await db
+    .select()
+    .from(storeContentDetails)
+    .where(eq(storeContentDetails.userId, userId));
+
+  const returnTitleAndId = await db
+    .select()
+    .from(storeTitleAndId)
+    .where(eq(storeTitleAndId.storeId, checkIfParentId.id));
+
+  if (!checkIfParentId) {
+    res.status(200).json({
+      message: "ParentId not found",
+      parentPageId: "",
+    });
+  } else {
+    res.status(200).json({
+      message: "Already have exisiting Id",
+      parentPageId: checkIfParentId.parentPageId,
+      returnTitleAndId: returnTitleAndId.map((x) => x.parentTitle),
+    });
+  }
+});
+
+// For generating desc for articles
+notionRouter.post("/generate-desc", async (req, res) => {
   const url = req.body.url;
   const searchResponse = await fetch("https://api.scira.ai/api/search", {
     method: "POST",
@@ -112,12 +163,8 @@ Based only on the content of this page, write a clear, neutral description of wh
   });
 });
 
-interface BlockType {
-  id: string;
-  title: string;
-}
-
-app.post("/database", async (req, res) => {
+// For adding url to particular databaseId
+notionRouter.post("/add-url", async (req, res) => {
   const secondId = "2af3554e-55e3-807d-857c-d0440f31ceed";
   const addData = await notion.pages.create({
     parent: {
@@ -136,7 +183,9 @@ app.post("/database", async (req, res) => {
   });
 });
 
-app.get("/database", async (req, res) => {
+// For getting all urls inside a databaseId
+
+notionRouter.get("/database", async (req, res) => {
   const secondId = "2af3554e-55e3-8036-aad0-d7d8b8413335";
   const database = await notion.databases.retrieve({
     database_id: secondId,
@@ -154,8 +203,6 @@ app.get("/database", async (req, res) => {
   });
 });
 
-// app.patch("/", async (req, res) => {
-// });
 // app.post("/", async (req, res) => {
 //   const newHeadingResponse = await notion.blocks.children.append({
 //     block_id: pageId,
@@ -179,7 +226,3 @@ app.get("/database", async (req, res) => {
 //   });
 // });
 //
-
-app.listen(3000, () => {
-  console.log("Server running on port 3000");
-});
