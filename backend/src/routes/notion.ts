@@ -25,7 +25,6 @@ notionRouter.post("/add-parent-id", async (req, res) => {
     .from(storeContentDetails)
     .where(eq(storeContentDetails.parentPageId, parentId));
 
-  console.log("Already exists: ", checkIdExists);
   if (checkIdExists) {
     res.status(200).json({
       message: "Id already exists",
@@ -95,6 +94,7 @@ notionRouter.post("/add-parent-id", async (req, res) => {
   }
 });
 
+// Return parentId if user has
 notionRouter.get("/user-parent-id", async (req, res) => {
   let userId = "";
   try {
@@ -181,8 +181,6 @@ notionRouter.post("/add-url", async (req, res) => {
     message: "Updated data",
   });
 });
-
-// For getting all urls inside a databaseId
 
 notionRouter.get("/database", async (req, res) => {
   const secondId = "2af3554e-55e3-8036-aad0-d7d8b8413335";

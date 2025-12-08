@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import { useSession } from "@/lib/auth-client";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { ConnectDatabase } from "@/components/ConnectDatabase";
 import { AddData } from "@/components/AddData";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -29,8 +29,7 @@ export default function Home() {
 
   const mutation = useMutation({
     mutationFn: sendPageId,
-    onSuccess: (data) => {
-      console.log(data);
+    onSuccess: () => {
       setTimeout(() => {
         toast.success("Database Connected", {
           description: "You can now add items to your store.",
@@ -48,7 +47,6 @@ export default function Home() {
       toast.error("Please enter a Page ID");
       return;
     }
-
     mutation.mutate({ pageId: parentPageId });
   };
 
