@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/select";
 
 interface Props {
-  handleReset: () => void;
   handleSubmit: (e: React.FormEvent) => void;
   loading?: boolean;
   setValue: React.Dispatch<React.SetStateAction<string>>;

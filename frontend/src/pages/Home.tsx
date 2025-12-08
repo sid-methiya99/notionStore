@@ -12,12 +12,10 @@ export default function Home() {
   const [value, setValue] = useState("");
   const [category, setCategory] = useState("");
   const [parentPageId, setParentPageId] = useState("");
-  const [isConfigured, setIsConfigured] = useState(false);
-  const [showSuccessAnim, setShowSuccessAnim] = useState(false);
-  const [searchParams, setSearchParams] = useSearchParams();
 
   const navigate = useNavigate();
   const { data: session, isPending } = useSession();
+
   const { data, isLoading } = useQuery({
     queryKey: ["parentPageId"],
     queryFn: getParentPageIdOfUser,
@@ -34,8 +32,6 @@ export default function Home() {
     onSuccess: (data) => {
       console.log(data);
       setTimeout(() => {
-        setShowSuccessAnim(false);
-        setIsConfigured(true);
         toast.success("Database Connected", {
           description: "You can now add items to your store.",
         });
@@ -54,8 +50,6 @@ export default function Home() {
     }
 
     mutation.mutate({ pageId: parentPageId });
-    setSearchParams({ parentPageId });
-    setShowSuccessAnim(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -81,14 +75,7 @@ export default function Home() {
     setValue("");
   };
 
-  // Helper to reset configuration (for demo purposes)
-  const handleReset = () => {
-    setIsConfigured(false);
-    setParentPageId("");
-  };
-
-  if (isPending) return null; // Or a loading spinner
-  console.log(data);
+  if (isPending) return null;
 
   return (
     <div className="bg-background flex min-h-screen w-full flex-col">
@@ -100,7 +87,7 @@ export default function Home() {
             handleSetup={handleSetup}
             setParentPageId={setParentPageId}
             loading={mutation.isPending}
-            showSuccessAnim={showSuccessAnim}
+            showSuccessAnim={mutation.isSuccess}
           />
         ) : (
           <AddData
@@ -110,7 +97,6 @@ export default function Home() {
             category={category}
             setCategory={setCategory}
             handleSubmit={handleSubmit}
-            handleReset={handleReset}
           />
         )}
       </div>

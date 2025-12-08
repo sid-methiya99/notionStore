@@ -6,7 +6,6 @@ import { auth } from "../utils/auth";
 import { notion } from "../utils/parse";
 import { config } from "dotenv";
 import { eq } from "drizzle-orm";
-import { error } from "better-auth/api";
 
 config();
 

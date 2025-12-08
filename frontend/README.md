@@ -2,4 +2,4 @@
 - [] Add support for creating databases
 - [] Add item to page or database
 - [] Add AI summarizer for articles and X
-- [] Fix website resubmission
+- [x] Fix website resubmission
