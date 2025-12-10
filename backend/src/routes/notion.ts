@@ -6,18 +6,15 @@ import { auth } from "../utils/auth";
 import { notion } from "../utils/parse";
 import { config } from "dotenv";
 import { eq } from "drizzle-orm";
+import authMiddleware from "./middleware";
+import { getBlocksData } from "./get-blocks";
 
 config();
 
 export const notionRouter = express.Router();
 
-interface BlockType {
-  id: string;
-  title: string;
-}
-
 // For adding parentId
-notionRouter.post("/add-parent-id", async (req, res) => {
+notionRouter.post("/add-parent-id", authMiddleware, async (req, res) => {
   const parentId = req.body.parentId;
 
   const checkIdExists = await db
@@ -43,38 +40,13 @@ notionRouter.post("/add-parent-id", async (req, res) => {
     return;
   }
 
-  let userId = "";
-  try {
-    const session = await auth.api.getSession({
-      headers: fromNodeHeaders(req.headers),
-    });
-    userId = session?.user.id!;
-  } catch (error) {
-    console.error(error);
-  }
-
-  if (!userId) {
-    throw new Error("UserID missing");
-  }
-
-  let getIdAndTitle: BlockType[] = [];
-
-  for (const block of blocks.results) {
-    //@ts-ignore
-    if (block?.child_database) {
-      getIdAndTitle.push({
-        id: block.id,
-        //@ts-ignore
-        title: block?.child_database.title,
-      });
-    }
-  }
+  const getIdAndTitle = getBlocksData(blocks);
 
   try {
     const [parent] = await db
       .insert(storeContentDetails)
       .values({
-        userId: userId,
+        userId: req.userId!,
         parentPageId: parentId,
       })
       .returning();
@@ -86,6 +58,7 @@ notionRouter.post("/add-parent-id", async (req, res) => {
     }));
 
     const data = await db.insert(storeTitleAndId).values(rowsToInsert);
+
     res.status(200).json({
       message: "Fetched all databases",
     });
@@ -95,25 +68,11 @@ notionRouter.post("/add-parent-id", async (req, res) => {
 });
 
 // Return parentId if user has
-notionRouter.get("/user-parent-id", async (req, res) => {
-  let userId = "";
-  try {
-    const session = await auth.api.getSession({
-      headers: fromNodeHeaders(req.headers),
-    });
-    userId = session?.user.id!;
-  } catch (error) {
-    console.error(error);
-  }
-
-  if (!userId) {
-    throw new Error("UserID missing");
-  }
-
+notionRouter.get("/user-parent-id", authMiddleware, async (req, res) => {
   const [checkIfParentId] = await db
     .select()
     .from(storeContentDetails)
-    .where(eq(storeContentDetails.userId, userId));
+    .where(eq(storeContentDetails.userId, req.userId!));
 
   const returnTitleAndId = await db
     .select()

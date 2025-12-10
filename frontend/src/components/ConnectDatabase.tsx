@@ -6,7 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Plus, Check, ArrowRight, Settings, Database } from "lucide-react";
+import { Check, ArrowRight, Database } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -17,6 +17,7 @@ interface Props {
   loading: boolean;
   setParentPageId: React.Dispatch<React.SetStateAction<string>>;
 }
+
 export const ConnectDatabase = ({
   handleSetup,
   showSuccessAnim,

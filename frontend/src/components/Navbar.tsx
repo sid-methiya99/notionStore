@@ -49,10 +49,8 @@ export default function Navbar() {
 
   return (
     <header className="border-border/40 bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 w-full border-b backdrop-blur">
-      <div className="container mx-auto flex h-14 max-w-screen-2xl items-center justify-between px-4">
-        {/* Logo */}
-        <Link to="/" className="flex items-center space-x-2">
-          {/* Optional: Add a small icon next to text for polish */}
+      <div className="container mx-auto h-14 max-w-screen-2xl items-center justify-between px-4 md:flex md:flex-row">
+        <Link to="/" className="hidden items-center space-x-2 md:flex">
           <Package2 className="h-6 w-6" />
           <span className="text-lg font-bold tracking-tight">notionStore</span>
         </Link>
@@ -88,11 +86,11 @@ export default function Navbar() {
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon">
-                <Menu className="h-5 w-5" />
+                <Menu className="mt-5 size-5" />
                 <span className="sr-only">Toggle Menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-full">
+            <SheetContent side="left" className="w-full">
               <SheetHeader className="mb-6 text-left">
                 <SheetTitle className="flex items-center gap-2">
                   <Package2 className="h-5 w-5" />

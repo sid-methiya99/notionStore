@@ -1,5 +1,6 @@
 - [] Add support for adding pages
 - [] Add support for creating databases
 - [] Add item to page or database
-- [] Add AI summarizer for articles and X
+- [x] Add AI summarizer for articles 
+- [] Add AI summarizer for X
 - [x] Fix website resubmission
