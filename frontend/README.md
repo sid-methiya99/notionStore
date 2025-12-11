@@ -4,3 +4,6 @@
 - [x] Add AI summarizer for articles 
 - [] Add AI summarizer for X
 - [x] Fix website resubmission
+-[] Add two forms insteaf of animating in one page
+- [] Move state of the home page
+-[] Create a agent which helps to organize your day to day learnings by time phase
