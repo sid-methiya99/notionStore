@@ -6,17 +6,22 @@ import Home from "@/pages/Home";
 import Login from "@/pages/Login";
 import "./index.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import Landing from "./components/lovable/pages/Landing";
+import Browser from "./components/lovable/pages/Browser";
+import NotFound from "./components/lovable/pages/NotFound";
 function App() {
   const queryClient = new QueryClient();
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
         <Router>
-          {/* font-sans applies the Geist font defined in your CSS */}
           <div className="bg-background text-foreground selection:bg-accent selection:text-accent-foreground min-h-screen font-sans antialiased">
             <Routes>
-              <Route path="/dashboard" element={<Home />} />
-              <Route path="/" element={<Login />} />
+              <Route path="/" element={<Landing />} />
+              <Route path="/browser" element={<Browser />} />
+              <Route path="*" element={<NotFound />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/home" element={<Home />} />
             </Routes>
             <Toaster />
           </div>
