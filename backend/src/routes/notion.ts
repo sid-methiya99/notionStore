@@ -2,7 +2,6 @@ import { fromNodeHeaders } from "better-auth/node";
 import express from "express";
 import { db } from "..";
 import { storeContentDetails, storeTitleAndId } from "../db/schema";
-import { auth } from "../utils/auth";
 import { notion } from "../utils/parse";
 import { config } from "dotenv";
 import { eq } from "drizzle-orm";
@@ -17,12 +16,12 @@ export const notionRouter = express.Router();
 notionRouter.post("/add-parent-id", authMiddleware, async (req, res) => {
   const parentId = req.body.parentId;
 
-  const checkIdExists = await db
+  const [checkIdExists] = await db
     .select()
     .from(storeContentDetails)
     .where(eq(storeContentDetails.parentPageId, parentId));
 
-  if (checkIdExists) {
+  if (checkIdExists !== undefined) {
     res.status(200).json({
       message: "Id already exists",
     });
@@ -69,15 +68,29 @@ notionRouter.post("/add-parent-id", authMiddleware, async (req, res) => {
 
 // Return parentId if user has
 notionRouter.get("/user-parent-id", authMiddleware, async (req, res) => {
+  const { parentPageId } = req.query;
+
+  const blocks = await notion.blocks.children.list({
+    block_id: parentPageId?.toString()!,
+  });
+
+  if (!blocks) {
+    res.status(400).json({
+      message: "Incorrect parentId",
+    });
+    return;
+  }
+
+  const getIdAndTitle = getBlocksData(blocks);
   const [checkIfParentId] = await db
     .select()
     .from(storeContentDetails)
     .where(eq(storeContentDetails.userId, req.userId!));
 
-  const returnTitleAndId = await db
-    .select()
-    .from(storeTitleAndId)
-    .where(eq(storeTitleAndId.storeId, checkIfParentId.id));
+  // const returnTitleAndId = await db
+  //   .select()
+  //   .from(storeTitleAndId)
+  //   .where(eq(storeTitleAndId.storeId, checkIfParentId.id));
 
   if (!checkIfParentId) {
     res.status(200).json({
@@ -88,7 +101,7 @@ notionRouter.get("/user-parent-id", authMiddleware, async (req, res) => {
     res.status(200).json({
       message: "Already have exisiting Id",
       parentPageId: checkIfParentId.parentPageId,
-      returnTitleAndId: returnTitleAndId.map((x) => x.parentTitle),
+      returnTitleAndId: getIdAndTitle.map((x) => x.title),
     });
   }
 });
